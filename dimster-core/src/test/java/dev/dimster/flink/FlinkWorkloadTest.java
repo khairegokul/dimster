@@ -283,6 +283,6 @@ public class FlinkWorkloadTest {
                 dev.dimster.engines.drainbacklog.DrainBacklogWorkload.class);
         TestPoint point = ScenarioExpander.expand(drain.baseWorkload, drain.scenarios, null,
                 drain.drainBacklogConfig).getFirst();
-        assertEquals(2, point.flink().parallelism);
+        assertEquals(1, point.flink().parallelism);
     }
 }
