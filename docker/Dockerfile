@@ -14,7 +14,7 @@
 # mis-version one of them. The Rust CLI loops over needed (flavor, version)
 # pairs and runs one `docker build` per pair.
 #
-# Both stages share `dimster-base:latest` (eclipse-temurin:25-jdk-noble +
+# Both stages share `dimster-base:latest` (eclipse-temurin:25.0.5_8-jdk-noble +
 # curl) so the JDK used to compile the engine matches the JDK used to run
 # it. dimster-base is built separately by `docker/Dockerfile.base` — the
 # CLI ensures it exists (and matches the daemon architecture) before
@@ -98,8 +98,16 @@ FROM dimster-base:latest
 # kubectl, for workload hook scripts (engineConfig.hooks) that act on the
 # cluster. The coordinator never calls it itself. Installed here rather than
 # in dimster-base so existing base images pick it up without a rebuild.
-ARG KUBECTL_VERSION=v1.31.4
-RUN curl -fsSL -o /usr/local/bin/kubectl \
+#
+# The OS upgrade is here too, not only in dimster-base, so security fixes
+# reach every image build even when an older dimster-base is cached.
+# kubectl v1.31.4 was built with Go 1.22.9 (CVE-2026-111943 in x509), so
+# use a current release built with a patched Go.
+ARG KUBECTL_VERSION=v1.37.2
+RUN apt-get update \
+ && apt-get upgrade -y \
+ && rm -rf /var/lib/apt/lists/* \
+ && curl -fsSL -o /usr/local/bin/kubectl \
       "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/$(dpkg --print-architecture)/kubectl" \
  && chmod +x /usr/local/bin/kubectl
 
